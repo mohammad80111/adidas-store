@@ -1,0 +1,1261 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4 text-primary" style=" margin-top:100px;font-weight:bolder;font-family:'Times New Roman', Times, serif">Welcome Adidas Store</h1>
+</div>
+
+
+
+
+
+<div>
+    <div id="container"></div>
+</div>
+<script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/175711/delaunay.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.13.2/TweenMax.min.js"></script>
+
+
+<style>
+  
+
+    canvas {
+        position: absolute;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        -moz-backface-visibility: hidden;
+        -ms-backface-visibility: hidden;
+    }
+
+    img {
+       /*  position: absolute; */
+        cursor: pointer;
+    }
+
+    #container {
+       /*  position: absolute;
+        left: 0;
+        right: 0;
+        top: 150px;
+        bottom: 0; */
+        margin-top:300px;
+        width: 768px;
+        height: 485px;
+      
+        margin: auto;
+        overflow: hidden;
+    }
+</style>
+
+<script>
+  
+
+    const TWO_PI = Math.PI * 2;
+
+    var images = [],
+        imageIndex = 0;
+
+    var image,
+        imageWidth = 768,
+        imageHeight = 485;
+
+    var vertices = [],
+        indices = [],
+        fragments = [];
+
+    var container = document.getElementById('container');
+
+    var clickPosition = [imageWidth * 0.5, imageHeight * 0.5];
+
+    window.onload = function () {
+        TweenMax.set(container, { perspective: 500 });
+
+        // images from reddit/r/wallpapers
+        var urls = [
+            'https://as2.ftcdn.net/v2/jpg/05/01/29/53/1000_F_501295383_OjRu7LPaxyThSt9lG5yXbPYvoF4yHK3x.jpg',
+            'https://as1.ftcdn.net/v2/jpg/03/96/36/46/1000_F_396364636_mb7bcDgvovNCzJzwQ6CsyvlR58zsHB2t.jpg',
+            'https://as1.ftcdn.net/v2/jpg/09/53/90/62/1000_F_953906224_NhqiLYXeDdostDNqf9SatMdQmwDLRXgQ.jpg',
+            'https://as1.ftcdn.net/v2/jpg/03/96/36/46/1000_F_396364636_mb7bcDgvovNCzJzwQ6CsyvlR58zsHB2t.jpg'
+        ],
+            image,
+            loaded = 0;
+        // very quick and dirty hack to load and display the first image asap
+        images[0] = image = new Image();
+        image.onload = function () {
+            if (++loaded === 1) {
+                imagesLoaded();
+                for (var i = 1; i < 4; i++) {
+                    images[i] = image = new Image();
+
+                    image.src = urls[i];
+                }
+            }
+        };
+        image.src = urls[0];
+    };
+
+    function imagesLoaded() {
+        placeImage(false);
+        triangulate();
+        shatter();
+    }
+
+    function placeImage(transitionIn) {
+        image = images[imageIndex];
+
+        if (++imageIndex === images.length) imageIndex = 0;
+
+        image.addEventListener('click', imageClickHandler);
+        container.appendChild(image);
+
+        if (transitionIn !== false) {
+            TweenMax.fromTo(image, 0.75, { y: -1000 }, { y: 0, ease: Back.easeOut });
+        }
+    }
+
+    function imageClickHandler(event) {
+        var box = image.getBoundingClientRect(),
+            top = box.top,
+            left = box.left;
+
+        clickPosition[0] = event.clientX - left;
+        clickPosition[1] = event.clientY - top;
+
+        triangulate();
+        shatter();
+    }
+
+    function triangulate() {
+        var rings = [
+            { r: 50, c: 12 },
+            { r: 150, c: 12 },
+            { r: 300, c: 12 },
+            { r: 1200, c: 12 } // very large in case of corner clicks
+        ],
+            x,
+            y,
+            centerX = clickPosition[0],
+            centerY = clickPosition[1];
+
+        vertices.push([centerX, centerY]);
+
+        rings.forEach(function (ring) {
+            var radius = ring.r,
+                count = ring.c,
+                variance = radius * 0.25;
+
+            for (var i = 0; i < count; i++) {
+                x = Math.cos((i / count) * TWO_PI) * radius + centerX + randomRange(-variance, variance);
+                y = Math.sin((i / count) * TWO_PI) * radius + centerY + randomRange(-variance, variance);
+                vertices.push([x, y]);
+            }
+        });
+
+        vertices.forEach(function (v) {
+            v[0] = clamp(v[0], 0, imageWidth);
+            v[1] = clamp(v[1], 0, imageHeight);
+        });
+
+        indices = Delaunay.triangulate(vertices);
+    }
+
+    function shatter() {
+        var p0, p1, p2,
+            fragment;
+
+        var tl0 = new TimelineMax({ onComplete: shatterCompleteHandler });
+
+        for (var i = 0; i < indices.length; i += 3) {
+            p0 = vertices[indices[i + 0]];
+            p1 = vertices[indices[i + 1]];
+            p2 = vertices[indices[i + 2]];
+
+            fragment = new Fragment(p0, p1, p2);
+
+            var dx = fragment.centroid[0] - clickPosition[0],
+                dy = fragment.centroid[1] - clickPosition[1],
+                d = Math.sqrt(dx * dx + dy * dy),
+                rx = 30 * sign(dy),
+                ry = 90 * -sign(dx),
+                delay = d * 0.003 * randomRange(0.9, 1.1);
+            fragment.canvas.style.zIndex = Math.floor(d).toString();
+
+            var tl1 = new TimelineMax();
+
+
+            tl1.to(fragment.canvas, 1, {
+                z: -500,
+                rotationX: rx,
+                rotationY: ry,
+                ease: Cubic.easeIn
+            });
+            tl1.to(fragment.canvas, 0.4, { alpha: 0 }, 0.6);
+
+            tl0.insert(tl1, delay);
+
+            fragments.push(fragment);
+            container.appendChild(fragment.canvas);
+        }
+
+        container.removeChild(image);
+        image.removeEventListener('click', imageClickHandler);
+    }
+
+    function shatterCompleteHandler() {
+        // add pooling?
+        fragments.forEach(function (f) {
+            container.removeChild(f.canvas);
+        });
+        fragments.length = 0;
+        vertices.length = 0;
+        indices.length = 0;
+
+        placeImage();
+    }
+
+    //////////////
+    // MATH UTILS
+    //////////////
+
+    function randomRange(min, max) {
+        return min + (max - min) * Math.random();
+    }
+
+    function clamp(x, min, max) {
+        return x < min ? min : (x > max ? max : x);
+    }
+
+    function sign(x) {
+        return x < 0 ? -1 : 1;
+    }
+
+    //////////////
+    // FRAGMENT
+    //////////////
+
+    Fragment = function (v0, v1, v2) {
+        this.v0 = v0;
+        this.v1 = v1;
+        this.v2 = v2;
+
+        this.computeBoundingBox();
+        this.computeCentroid();
+        this.createCanvas();
+        this.clip();
+    };
+    Fragment.prototype = {
+        computeBoundingBox: function () {
+            var xMin = Math.min(this.v0[0], this.v1[0], this.v2[0]),
+                xMax = Math.max(this.v0[0], this.v1[0], this.v2[0]),
+                yMin = Math.min(this.v0[1], this.v1[1], this.v2[1]),
+                yMax = Math.max(this.v0[1], this.v1[1], this.v2[1]);
+
+            this.box = {
+                x: xMin,
+                y: yMin,
+                w: xMax - xMin,
+                h: yMax - yMin
+            };
+        },
+        computeCentroid: function () {
+            var x = (this.v0[0] + this.v1[0] + this.v2[0]) / 3,
+                y = (this.v0[1] + this.v1[1] + this.v2[1]) / 3;
+
+            this.centroid = [x, y];
+        },
+        createCanvas: function () {
+            this.canvas = document.createElement('canvas');
+            this.canvas.width = this.box.w;
+            this.canvas.height = this.box.h;
+            this.canvas.style.width = this.box.w + 'px';
+            this.canvas.style.height = this.box.h + 'px';
+            this.canvas.style.left = this.box.x + 'px';
+            this.canvas.style.top = this.box.y + 'px';
+            this.ctx = this.canvas.getContext('2d');
+        },
+        clip: function () {
+            this.ctx.translate(-this.box.x, -this.box.y);
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.v0[0], this.v0[1]);
+            this.ctx.lineTo(this.v1[0], this.v1[1]);
+            this.ctx.lineTo(this.v2[0], this.v2[1]);
+            this.ctx.closePath();
+            this.ctx.clip();
+            this.ctx.drawImage(image, 0, 0);
+        }
+    };
+</script>
+
+
+@* carrd *@
+<!-- This pen is best viewed in fullscreen -->
+
+<div class="text-center mt-5 ">
+    <h1 class="text-primary" style=" font-size:60px;">product offer</h1>
+</div>
+<div class="product-grid">
+    <div class="flex-col">
+        <div class="material-design product-box">
+            <div class="discount">16%<br><span style="letter-spacing:1.2px">off</span></div>
+            <div class="top-section">
+                <div class="product-image">
+                    <img src="https://rukminim2.flixcart.com/image/850/1000/xif0q/shoe/q/s/n/-original-imah25hq9y8t3ukf.jpeg?q=90&crop=false" />
+                </div>
+            </div>
+            <div class="bottom-section">
+                <div class="main-info">
+                    <div class="product-title">
+                        <span>Adidas Originals</span>
+                        <div class="product-make">
+                            by Adidas
+                        </div>
+                    </div>
+                    <div class="product-price">
+                        <div class="discounted-price">$90.00</div>
+                        <div class="flex-row">
+                            <div class="actual-price">$108.00</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-features">
+                    <div class="features">Material: Mesh</div>
+                    <div class="features">Closure Type: Lace-up</div>
+                    <div class="features">Ships In: 1-2 Days</div>
+                    <div class="features">Warranty: 1 year</div>
+                </div>
+            </div>
+            <a href="#" class="buy-button-link">
+               
+            </a>
+        </div>
+       
+    </div>
+    <div class="flex-col">
+        <div class="ios-design product-box">
+            <div class="head-section">
+                <div class="product-title">
+                    <span>Adidas Originals</span>
+                    <div class="product-make">
+                        by Adidas
+                    </div>
+                </div>
+            </div>
+            <div class="top-section">
+                <div class="product-image">
+                    <img src="https://assets.adidas.com/images/w_383,h_383,f_auto,q_auto,fl_lossy,c_fill,g_auto/704736b36f5145548e355e83f3790281_9366/kaptir-flow-shoes.jpg" />
+                </div>
+            </div>
+            <div class="bottom-section">
+                <div class="main-info">
+                    <div class="product-price">
+                        <div class="discounted-price">$90.00</div>
+                        <div class="flex-row">
+                            <div class="actual-price">$108.00</div>
+                            <div class="discount">16% off</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-features">
+                    <div class="feature-title">Specifications and Shipping</div>
+                    <div class="features">Material: Mesh</div>
+                 
+                </div>
+               
+            </div>
+        </div>
+      
+    </div>
+    <div class="flex-col">
+        <div class="tile-design product-box">
+            <div class="head-section">
+                <div class="product-title">
+                    <span>Adidas Originals</span>
+                    <div class="product-make">
+                        by Adidas
+                    </div>
+                </div>
+            </div>
+            <div class="top-section">
+                <div class="product-image">
+                    <img src="http://www.pngall.com/wp-content/uploads/2016/06/Adidas-Shoes-PNG-Picture.png" />
+                </div>
+            </div>
+            <div class="bottom-section">
+                <div class="main-info">
+                    <div class="product-price">
+                        <div class="discounted-price">$90.00</div>
+                        <div class="flex-row">
+                            <div class="actual-price">$108.00</div>
+                            <div class="discount">16% off</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-features">
+                    <div class="features">Material: Mesh</div>
+                    <div class="features">Closure Type: Lace-up</div>
+                    <div class="features">Warranty: 1 year</div>
+                    <div class="features shipping">Ships in 1-2 Days</div>
+                </div>
+             
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<style>
+    body {
+
+  box-sizing: border-box;
+
+  * {
+    cursor: default;
+  }
+  a {
+    text-decoration: none;
+    cursor: pointer !important;
+  }
+  .flex-col{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    aling-content: center;
+  }
+  .flex-row{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+  .design-title{
+    text-align: center;
+  }
+}
+
+.product-grid {
+  height: 100%;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin: 24px 42px;
+  .product-box {
+    height: 80%;
+    padding: 16px;
+    width: 250px;
+    max-height: 500px;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    margin: 16px;
+    transition: transform 0.3s ease-in-out;
+    &:hover{
+      transform: scale(1.05);
+    }
+    &.material-design {
+      box-shadow: 0 0 4px #888888;
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+      .discount{
+        position: absolute;
+        right:8px;
+        top: 8px;
+        color: #fff;
+        text-align: center;
+      }
+      .top-section {
+        text-align: center;
+        position: relative;
+        margin-bottom: 16px;
+        &:before {
+          content: '';
+          height: 150px;
+          width: 150px;
+          border-radius: 5em;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          margin-top: -75px;
+          margin-left: -75px;
+          background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAKklEQVQYV2Nc4P/hPwMUxG/gZ2CECYA4CwM+QgRgHJBCxv////8HycAAAOpcFZt0Bge6AAAAAElFTkSuQmCC") repeat;
+          opacity: 0.4;
+        }
+        
+        img {
+          position: relative;
+          max-height: 200px;
+          max-width: 100%;
+        }
+      }
+      .bottom-section {
+        .main-info {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 16px;
+          .product-title {
+            font-size: 18px;
+            font-weight: 500;
+            .product-make {
+              font-size: 14px;
+              color: #b4b4b4;
+            }
+          }
+          .product-price {
+            font-size: 18px;
+            font-weight: 700;
+            text-align: right;
+            .actual-price{
+              font-size: 14px;
+              color: #b4b4b4;
+              font-weight: 100;
+              text-decoration: line-through;
+            }
+            .discount{
+              font-size: 14px;
+              margin-left: 4px;
+              font-weight: 100;
+              
+            }
+          }
+        }
+        .product-features {
+          min-height: 178px;
+          margin-bottom: 16px;
+          .features {
+            font-size: 16px;
+            font-weight: 100;
+            margin-bottom: 8px;
+          }
+        }
+      }
+      a.buy-button-link {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        margin: 0 -16px;
+        .buy-button-wrapper {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background: #35A65B;
+          padding: 16px 0;
+          color: #fff;
+          font-size: 18px;
+          i{
+            font-size: 18px;
+            padding-left: 4px;
+          }
+          &:hover {
+            transition: background 0.3s ease;
+            background: rgba(53, 166, 91, 0.9);
+            cursor: pointer;
+          }
+        }
+      }
+      &:before{
+        content:"";
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        height: 120px;
+        width: 120px;
+        background: #35A65B;
+        transform: rotate(45deg);
+      }
+    }
+    &.ios-design {
+      .head-section {
+        padding-bottom: 8px;
+        .product-title {
+          text-align: center;
+          font-size: 28px;
+          font-weight: 100;
+          .product-make {
+            font-size: 12px;
+          }
+        }
+      }
+      .top-section {
+        text-align: center;
+        img {
+          max-height: 200px;
+          max-width: 100%;
+        }
+      }
+      .bottom-section {
+        .product-price {
+          font-size: 20px;
+          text-align: center;
+          font-weight: 400;
+          padding-bottom: 16px;
+          .actual-price{
+            font-weight: 100;
+            color: #b4b4b4;
+            text-decoration: line-through;
+            font-size: 16px;
+          }
+          .discount{
+            margin-left: 8px;
+            font-weight: 100;
+            font-size: 16px;
+            color: #0070c9;
+          }
+        }
+        .product-features {
+          font-size: 14px;
+          font-weight: 100;
+          color: #8a8a8a;
+          .feature-title {
+            padding-bottom: 8px;
+          }
+          .features {
+            padding-bottom: 4px;
+            &:last-child {
+              padding-bottom: 0;
+            }
+            &.shipping {
+              padding-top: 8px;
+            }
+          }
+        }
+        .buy-button-wrapper {
+          font-size: 18px;
+          min-width: 30px;
+          line-height: 2.2;
+          text-align: center;
+          background-color: #0070c9;
+          color: #fff;
+          background: linear-gradient(#42a1ec, #0070c9);
+          border-radius: 4px;
+          border: 1px solid #07c;
+          margin-top: 12px;
+          margin-bottom: -16px;
+          &:hover {
+            transition: background 0.3s ease;
+            background: linear-gradient(#51a9ee, #147bcd);
+            border-color: #1482d0;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+    &.tile-design {
+      background: #4A256D;
+      box-shadow: 0px 0px 14px #888888;
+      .head-section {
+        color: #fff;
+        text-align: center;
+        padding-bottom: 16px;
+        .product-title {
+          font-size: 24px;
+          font-weight: 700;
+          text-transform: uppercase;
+          .product-make {
+            font-size: 14px;
+            font-weight: 100;
+          }
+        }
+      }
+      .top-section {
+        .product-image {
+          text-align: center;
+          position: relative;
+          z-index: 0;
+          &:before {
+            content: '';
+            height: 150px;
+            width: 150px;
+            background: rgba(0, 0, 0, 0.2);
+            position: absolute;
+            top: 0;
+            left: 50%;
+            top: 50%;
+            margin-left: -75px;
+            margin-top: -75px;
+            border: 1px solid transparent;
+            border-radius: 5em;
+          }
+          img {
+            height: 200px;
+            position: relative;
+          }
+        }
+      }
+      .bottom-section {
+        .main-info {
+          .product-price {
+            text-align: center;
+            color: #fff;
+            font-size: 20px;
+            margin-bottom: 24px;
+            .actual-price{
+              font-size: 16px;
+              text-decoration: line-through;
+              margin-right: 4px;
+              font-weight: 100;
+            }
+            .discount{
+              font-size: 16px;
+            }
+          }
+        }
+        .product-features {
+          margin-bottom: 24px;
+          color: #fff;
+          .features {
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 100;
+            &:last-child {
+              margin-bottom: 0;
+            }
+            &.shipping {
+              margin-top: 16px;
+            }
+          }
+        }
+      }
+      .buy-button-wrapper {
+        background-color: #fff;
+        color: #4A256D;
+        margin: 0 -16px;
+        margin-bottom: -16px;
+        padding: 16px 0;
+        text-align: center;
+        text-transform: uppercase;
+        font-size: 14px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        i {
+          font-weight: 100;
+          padding-left: 4px;
+          font-size: 18px;
+        }
+         &:hover {
+          cursor: pointer;
+          color: rgba(74, 37, 109, 0.9);
+          transition: color 0.3s ease;
+        }
+      }
+    }
+  }
+}
+</style>
+@* carrd *@
+
+
+
+       @*  product piccard *@
+
+<section class="products">
+    <div class="product-card">
+        <div class="product-image">
+            <img src="https://img.freepik.com/premium-photo/pair-adidas-adidas-shoes-are-shown-white-background_1003619-4358.jpg?w=360">
+        </div>
+        <div class="product-info">
+            <h5>Winter shose</h5>
+            <h6>$99.99</h6>
+        </div>
+    </div>
+
+    <div class="product-card">
+        <div class="product-image">
+            <img src="https://thumbs.dreamstime.com/z/vienna-austria-august-adidas-equipment-running-cushion-vintage-white-sneaker-white-background-adidas-equipment-running-cushion-146415659.jpg?w=768">
+        </div>
+        <div class="product-info">
+            <h5>Charcoal</h5>
+            <h6>$73.99</h6>
+        </div>
+    </div>
+
+    <div class="product-card">
+        <div class="product-image">
+            <img src="https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/2f04a2c84b4140d0bb8deaddffe34842_9366/Powerlift_5_Weightlifting_Shoes_Brown_ID2475_02_standard.jpg">
+        </div>
+        <div class="product-info">
+            <h5>Powerlift 5</h5>
+            <h6>$45.99</h6>
+        </div>
+    </div>
+
+    <div class="product-card">
+        <div class="product-image">
+            <img src="https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/7279ddd220134a1c9592ae6f00f8bc8d_9366/Adipower_Weightlifting_3_Shoes_White_GY8926_01_standard.jpg">
+        </div>
+        <div class="product-info">
+            <h5>sampa</h5>
+            <h6>$38.99</h6>
+        </div>
+    </div>
+
+    <div class="product-card">
+        <div class="product-image">
+            <img src="https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/94e0c4d65c2a445da1d5af1e00ec5e6f_9366/Power_Perfect_3_Tokyo_Weightlifting_Shoes_Black_HQ3524_01_standard.jpg">
+        </div>
+        <div class="product-info">
+            <h5>handbel</h5>
+            <h6>$36.99</h6>
+        </div>
+    </div>
+
+    <div class="product-card">
+        <div class="product-image">
+            <img src="https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/777e4d5dd72d411dae2f7c1f58c945b7_9366/Samba_OG_Shoes_Grey_IE9164_01_standard.jpg">
+        </div>
+        <div class="product-info">
+            <h5>campus</h5>
+            <h6>$56.99</h6>
+        </div>
+    </div>
+
+    <div class="product-card">
+        <div class="product-image">
+            <img style="height:240px;" src="https://ke.jumia.is/unsafe/fit-in/680x680/filters:fill(white)/product/99/8598862/1.jpg?6290">
+        </div>
+        <div class="product-info">
+            <h5>norpa shose</h5>
+            <h6>$39.99</h6>
+        </div>
+    </div>
+
+    <div class="product-card">
+        <div class="product-image">
+            <img style="height:230px;" src="https://images.unsplash.com/photo-1542272454315-4c01d7abdf4a?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D">
+        </div>
+        <div class="product-info">
+            <h5>Winter shose</h5>
+            <h6>$39.99</h6>
+        </div>
+    </div>
+
+    <div class="product-card">
+        <div class="product-image">
+            <img style="height:230px;" src="https://images.unsplash.com/photo-1451256656121-9ffc0c898a49?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D">
+        </div>
+        <div class="product-info">
+            <h5>sampa shose</h5>
+            <h6>$23.99</h6>
+        </div>
+    </div>
+
+    <div class="product-card">
+        <div class="product-image">
+            <img style="height:230px;" src="https://images.unsplash.com/photo-1634044303007-3a1f9c04e543?q=80&w=1450&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D">
+        </div>
+        <div class="product-info">
+            <h5>hiking shose</h5>
+            <h6>$94.99</h6>
+        </div>
+    </div>
+
+</section>
+
+<style>
+    /*------------------------------------*\
+    RESET
+\*------------------------------------*/
+/* https://meyerweb.com/eric/tools/css/reset/ 
+    v2.0b1 | 201101 
+    NOTE:WORK IN PROGRESS
+    USE WITH CAUTION AND TEST WITH ABANDON */
+
+html,body,div,span,applet,object,iframe,
+h1,h2,h3,h4,h5,h6,p,blockquote,pre,
+a,abbr,acronym,address,big,cite,code,
+del,dfn,em,img,ins,kbd,q,s,samp,
+small,strike,strong,sub,sup,tt,var,
+b,u,i,center,
+dl,dt,dd,ol,ul,li,
+fieldset,form,label,legend,
+table,caption,tbody,tfoot,thead,tr,th,td,
+article,aside,canvas,details,figcaption,figure,
+footer,header,hgroup,menu,nav,section,summary,
+time,mark,audio,video{
+    margin:0;
+    padding:0;
+    border:0;
+    outline:0;
+    font-size:100%;
+    font:inherit;
+    vertical-align:baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article,aside,details,figcaption,figure,
+footer,header,hgroup,menu,nav,section{
+    display:block;
+}
+body{
+    line-height:1;
+}
+ol,ul{
+    list-style:none;
+}
+blockquote,q{
+    quotes:none;
+}
+blockquote:before,blockquote:after,
+q:before,q:after{
+    content:’’;
+    content:none;
+}
+/* remember to define visible focus styles! 
+:focus{
+    outline:?????;
+} */
+
+/* remember to highlight inserts somehow! */
+ins{
+    text-decoration:none;
+}
+del{
+    text-decoration:line-through;
+}
+
+table{
+    border-collapse:collapse;
+    border-spacing:0;
+}
+
+/*------------------------------------*\
+    $MAIN
+\*------------------------------------*/
+
+
+body {
+	margin: 0 auto;
+	width: 90%;
+	max-width: 1240px;
+	font-family: 'Roboto', sans-serif;
+	background-color: #f6f6f6;
+}
+
+/* Typography */
+
+h1 {
+	font-size: 28px;
+	font-weight: 300;
+	flex: 1;
+}
+
+h5 {
+	font-weight: 500;
+	line-height: 1.7em;
+}
+
+h6 {
+	color: #666;
+	font-size: 14px;
+}
+
+/* Product Layout */
+
+.product-filter {
+	display: flex;
+	padding: 30px 0;
+}
+
+.sort {
+	display: flex;
+	align-self: flex-end;
+}
+
+.collection-sort {
+ display: flex;
+	flex-direction: column;
+}
+
+.collection-sort:first-child {
+	padding-right: 20px;
+}
+
+label {
+	color: #666;
+	font-size: 10px;
+	font-weight: 500;
+	line-height: 2em;
+	text-transform: uppercase;
+}
+
+.products {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.product-card {
+	display: flex;
+	flex-direction: column;
+	
+	padding: 2%;
+	flex: 1 16%;
+	
+	background-color: #FFF;
+	box-shadow: 0px 0px 1px 0px rgba(0,0,0,0.25);
+}
+
+.product-image img {
+	width: 100%;
+}
+
+.product-info {
+	margin-top: auto;
+	padding-top: 20px;
+	text-align: center;
+}
+
+media ( max-width: 920px ) {
+	
+	.product-card {
+		flex: 1 21%;
+	}
+	
+	.products .product-card:first-child, 
+	.products .product-card:nth-child(2) {
+		flex: 2 46%;
+	}
+	
+}
+
+media ( max-width: 600px ) {
+	
+	.product-card {
+		flex: 1 46%;
+	}
+	
+}
+
+media ( max-width: 480px ) {
+	
+	h1 {
+		margin-bottom: 20px;
+	}
+	
+	.product-filter {
+		flex-direction: column;
+	}
+	
+	.sort {
+		align-self: flex-start;
+	}
+	
+}
+
+
+
+
+
+
+
+
+
+</style>
+       @*  product piccard *@
+
+
+
+   @*  bigslider *@
+<div class="slider-wrapper" style="margin-top:80px;">
+    <div class="slider">
+        <div class="item">
+            <figure>
+                <img src="https://static.nike.com/a/images/f_auto/dpr_1.0,cs_srgb/h_2991,c_limit/5fab8bfc-28e0-488f-8ee9-25e064774a69/nike-just-do-it.jpg" alt="Nike" data-fetch-priority="high">
+                <figcaption>
+                    <h4>adidas Image </h4>
+                    <p>This image comes from adidas.com</p>
+                    <a href="#">Visit Site</a>
+                </figcaption>
+            </figure>
+        </div>
+        <div class="item">
+            <figure>
+                <img style="height:420px;" src="https://images.unsplash.com/photo-1519931127525-6b6a7619a003?q=80&w=1623&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Nike" loading="lazy" data-fetch-priority="auto">
+                <figcaption>
+                    <h4>shose nice</h4>
+                    <p>This image comes from adidas.com</p>
+                    <a href="#">Visit Site</a>
+                </figcaption>
+            </figure>
+        </div>
+        <div class="item">
+            <figure>
+                <img style="height:420px;" src="https://images.unsplash.com/photo-1514514757092-71ebbc3db4e6?q=80&w=1495&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Nike" loading="lazy" data-fetch-priority="auto">
+                <figcaption>
+                    <h4>shose winter</h4>
+                    <p>This image comes from adidas.com</p>
+                    <a href="#">Visit Site</a>
+                </figcaption>
+            </figure>
+        </div>
+    </div>
+    <button class="btn-prev">◀</button>
+    <button class="btn-next">▶</button>
+    <div class="range">
+        <input type="range" min="1" max="3" step="1" value="1" />
+    </div>
+</div>
+
+<style>
+
+    .slider-wrapper {
+        position: relative;
+        --curr: 1;
+    }
+
+    .slider {
+        display: flex;
+        flex-wrap: nowrap;
+        scroll-snap-type: x mandatory;
+        overflow: clip;
+        border-radius: 16px;
+    }
+
+    .item {
+        position: relative;
+        flex: 1 0 100%;
+        left: calc((var(--curr) - 1) * (-100%));
+        scroll-snap-align: center;
+        transition: left 0.5s ease-in;
+    }
+
+        .item figcaption {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 0 60px 30px;
+            color: #fff;
+        }
+
+            .item figcaption h4 {
+                margin: 0 0 0.15em;
+                padding: 0;
+                font-size: 2rem;
+                text-transform: uppercase;
+            }
+
+            .item figcaption p {
+                margin: 0;
+                padding: 0;
+                font-size: 1rem;
+            }
+
+            .item figcaption a {
+                display: inline-block;
+                margin: 0.8em 0;
+                padding: 0;
+                font-size: 1rem;
+                color: inherit;
+                text-decoration: none;
+            }
+
+                .item figcaption a:after {
+                    content: " →";
+                }
+
+        .item img {
+            width: 100%;
+        }
+
+    .btn-prev,
+    .btn-next {
+        position: absolute;
+        line-height: 0;
+        top: 50%;
+        font-size: 1.2rem;
+        color: white;
+        background: none;
+        border: none;
+        appearance: none;
+    }
+
+    .btn-prev {
+        left: 10px;
+    }
+
+    .btn-next {
+        right: 10px;
+    }
+
+    .range {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0 auto 20px;
+        width: 200px;
+        height: 8px;
+    }
+
+    /** Generated using range input css */
+    input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+        width: 100%;
+    }
+
+        /* Removes default focus */
+        input[type="range"]:focus {
+            outline: none;
+        }
+
+        /******** Chrome, Safari, Opera and Edge Chromium styles ********/
+        /* slider track */
+        input[type="range"]::-webkit-slider-runnable-track {
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 0.5rem;
+            height: 0.35rem;
+        }
+
+        /* slider thumb */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; /* Override default look */
+            appearance: none;
+            margin-top: 0px; /* Centers thumb on the track */
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            height: 0.35rem;
+            width: 33.33%;
+        }
+
+        input[type="range"]:focus::-webkit-slider-thumb {
+            outline: 0px solid #ffffff;
+            outline-offset: 0rem;
+        }
+
+</style>
+
+<script>
+    HTMLElement.prototype.initCarousel = function () {
+        let range = this.querySelector("input");
+        let btnPrev = this.querySelector(".btn-prev");
+        let btnNext = this.querySelector(".btn-next");
+
+        range.addEventListener("change", (e) => {
+            this.style.setProperty("--curr", e.target.value);
+        });
+
+        btnPrev.addEventListener("click", (e) => {
+            range.stepDown(1);
+            this.style.setProperty("--curr", range.value);
+        });
+
+        btnNext.addEventListener("click", (e) => {
+            range.stepUp(1);
+            this.style.setProperty("--curr", range.value);
+        });
+    };
+
+    document.querySelector(".slider-wrapper").initCarousel();
+
+</script>
+   @*  bigslider *@
+
+
+
+        <h1>hello</h1>
+
+            @* slider carrrr *@
+
+            @* slider carrrr *@

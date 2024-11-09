@@ -1,0 +1,49 @@
+/* _content/XoXo/Views/Shared/_Layout.cshtml.rz.scp.css */
+/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand[b-alqor0uhow] {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+a[b-alqor0uhow] {
+  color: #0077cc;
+}
+
+.btn-primary[b-alqor0uhow] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active[b-alqor0uhow], .nav-pills .show > .nav-link[b-alqor0uhow] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.border-top[b-alqor0uhow] {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom[b-alqor0uhow] {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow[b-alqor0uhow] {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy[b-alqor0uhow] {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+.footer[b-alqor0uhow] {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+}

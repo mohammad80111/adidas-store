@@ -1,0 +1,345 @@
+﻿
+
+
+<div style="margin-top:200px;margin-bottom:70px;" class="text-center">
+    <h1 style="font-size:60px;" class="text-primary">Kids Products</h1>
+</div>
+
+
+<main class="container"@*  style="margin-top:200px;" *@>
+ 
+    <section class="cardd">
+        <div class="product-image">
+            <img id="img" src="https://freepngimg.com/thumb/shoes/21729-4-saucony-grid-9000.png" draggable="false" />
+        </div>
+        <div class="product-info">
+            <h2>adidas X OFF-white</h2>
+            <p>The 10: Air Jordan 1 off-white - Chicago</p>
+            <div class="price">$999</div>
+        </div>
+       
+    </section>
+    <section class="cardd card-blue">
+        <div class="product-image">
+            <img id="img" src="https://freepngimg.com/thumb/shoes/55536-4-sneakers-free-download-image.png" alt="OFF-white Blue Edition" draggable="false" />
+        </div>
+        <div class="product-info">
+            <h2>adidas X OFF-white</h2>
+            <p>Air Jordan 1 Retro High "Off-White - UNC" sneakers</p>
+            <div class="price">$1599</div>
+        </div>
+     
+    </section>
+</main>
+
+<style>
+    /*===== VARIABLES CSS =====*/
+:root {
+  --dark-color-lighten: #f2f5ff;
+  --red-card: #a62121;
+  --blue-card: #4bb7e6;
+  --btn: #141414;
+  --btn-hover: #3a3a3a;
+  --text: #fbf7f7;
+}
+
+/*===== RESET =====*/
+*,
+::before,
+::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+button {
+  font-family: "Montserrat", sans-serif;
+  display: inline-block;
+  border: none;
+  outline: none;
+  border-radius: 0.2rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+}
+
+#img {
+  max-width: 100%;
+  height: 100%;
+  user-select: none;
+}
+
+/*===== CARD =====*/
+.container {
+  height: 100%;
+  width: 850px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+.cardd {
+  position: relative;
+  padding: 1rem;
+  width: 350px;
+  height: 450px;
+  box-shadow: -1px 15px 30px -12px rgb(32, 32, 32);
+  border-radius: 0.9rem;
+  background-color: var(--red-card);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.card-blue {
+  background: var(--blue-card);
+}
+
+.product-image {
+  height: 230px;
+  width: 100%;
+  transform: translate(0, -1.5rem);
+  transition: transform 500ms ease-in-out;
+  filter: drop-shadow(5px 10px 15px rgba(8, 9, 13, 0.4));
+}
+.product-info {
+  text-align: center;
+}
+
+.cardd:hover .product-image {
+  transform: translate(-1.5rem, -7rem) rotate(-20deg);
+}
+
+.product-info h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+.product-info p {
+  margin: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.price {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+/* .btn {
+ /*  display: flex; */
+  justify-content: space-evenly;
+  align-items: center;
+  margin-top: 0.8rem;
+} */
+.buy-btn {
+  background-color: var(--btn);
+  padding: 0.6rem 3.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: 300ms ease;
+}
+.buy-btn:hover {
+  background-color: var(--btn-hover);
+}
+.fav {
+  box-sizing: border-box;
+  background: #fff;
+  padding: 0.5rem 0.5rem;
+  border: 1px solid#000;
+  display: grid;
+  place-items: center;
+}
+
+.svg {
+  height: 25px;
+  width: 25px;
+  fill: #fff;
+  transition: all 500ms ease;
+}
+
+.fav:hover .svg {
+  fill: #000;
+}
+
+media screen and (max-width: 800px) {
+  body {
+    height: auto;
+  }
+  .container {
+    padding: 2rem 0;
+    width: 100%;
+    flex-direction: column;
+    gap: 3rem;
+  }
+}
+
+</style>
+
+
+@* cardkids *@
+<div class="containerr"> <div class="d-lg-flex"> <div class="card border-0 me-lg-4 mb-lg-0 mb-4"> <div class="backgroundEffect"></div> <div class="pic"> <img class="" src="https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/621e70642fd041fc8df37f9f98753de2_9366/Grand_Court_2.0_Shoes_Kids_Black_IE1372_01_standard.jpg" alt=""> <div class="date"> <span class="day">26</span> <span class="month">June</span> <span class="year">2019</span> </div> </div> <div class="content"> <p class="h-1 mt-4">Finance And Legal Working Streams Occur Throughout</p> <p class="text-muted mt-3">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p> <div class="d-flex align-items-center justify-content-between mt-3 pb-3"> <div class="btn btn-primary">Read More<span class="fas fa-arrow-right"></span></div> <div class="d-flex align-items-center justify-content-center foot"> <p class="admin">Admin</p> <p class="ps-3 icon text-muted"><span class="fas fa-comment-alt pe-1"></span>3</p> </div> </div> </div> </div> <div class="card border-0 me-lg-4 mb-lg-0 mb-4"> <div class="backgroundEffect"></div> <div class="pic"> <img class="" src="https://assets.adidas.com/images/w_1880,f_auto,q_auto/52256622e0e24a2f96c18f7f54fb2e1a_9366/ID7909_01_standard.jpg" alt=""> <div class="date"> <span class="day">26</span> <span class="month">June</span> <span class="year">2019</span> </div> </div> <div class="content"> <p class="h-1 mt-4">Finance And Legal Working Streams Occur Throughout</p> <p class="text-muted mt-3">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p> <div class="d-flex align-items-center justify-content-between mt-3 pb-3"> <div class="btn btn-primary">Read More<span class="fas fa-arrow-right"></span></div> <div class="d-flex align-items-center justify-content-center foot"> <p class="admin">Admin</p> <p class="ps-3 icon text-muted"><span class="fas fa-comment-alt pe-1"></span>3</p> </div> </div> </div> </div> <div class="card border-0 mb-lg-0 mb-4"> <div class="backgroundEffect"></div> <div class="pic"> <img class="" src="https://www.ace.co.uk/images/imgzoom/02/02285299_xxl.jpg" alt=""> <div class="date"> <span class="day">26</span> <span class="month">June</span> <span class="year">2019</span> </div> </div> <div class="content"> <p class="h-1 mt-4">Finance And Legal Working Streams Occur Throughout</p> <p class="text-muted mt-3">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p> <div class="d-flex align-items-center justify-content-between mt-3 pb-3"> <div class="btn btn-primary">Read More<span class="fas fa-arrow-right"></span></div> <div class="d-flex align-items-center justify-content-center foot"> <p class="admin">Admin</p> <p class="ps-3 icon text-muted"><span class="fas fa-comment-alt pe-1"></span>3</p> </div> </div> </div> </div> </div> </div>
+<style>
+
+
+
+
+
+.containerr {
+    min-height: 100vh;
+    padding: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+p {
+    margin: 0px
+}
+
+.card {
+    width: 280px;
+    height: 520px;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    background: #fff;
+    transition: all 0.5s ease;
+    cursor: pointer;
+    user-select: none;
+    z-index: 10;
+    overflow: hidden
+}
+
+.card .backgroundEffect {
+    bottom: 0;
+    height: 0px;
+    width: 100%
+}
+
+.card:hover {
+    color: #fff;
+    transform: scale(1.025);
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 10px
+}
+
+.card:hover .backgroundEffect {
+    bottom: 0;
+    height: 320px;
+    width: 100%;
+    position: absolute;
+    z-index: -1;
+    background: #1b9ce3;
+    animation: popBackground 0.3s ease-in
+}
+
+keyframes popBackground {
+    0% {
+        height: 20px;
+        border-top-left-radius: 50%;
+        border-top-right-radius: 50%
+    }
+
+    50% {
+        height: 80px;
+        border-top-left-radius: 75%;
+        border-top-right-radius: 75%
+    }
+
+    75% {
+        height: 160px;
+        border-top-left-radius: 85%;
+        border-top-right-radius: 85%
+    }
+
+    100% {
+        height: 320px;
+        border-top-left-radius: 100%;
+        border-top-right-radius: 100%
+    }
+}
+
+.card .pic {
+    position: relative
+}
+
+.card .pic img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover
+}
+
+.card .date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 70px;
+    background-color: #1b9ce3;
+    color: white;
+    position: absolute;
+    bottom: 0px;
+    transition: all ease
+}
+
+.card .date .day {
+    font-size: 14px;
+    font-weight: 600
+}
+
+.card .date .month,
+.card .date .year {
+    font-size: 10px
+}
+
+.card .text-muted {
+    font-size: 12px
+}
+
+.card:hover .text-muted {
+    color: #fff !important
+}
+
+.card .content {
+    padding: 0 20px
+}
+
+.card .content .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    background-color: #1b9ce3;
+    border-radius: 25px;
+    font-size: 12px;
+    border: none
+}
+
+.card:hover .content .btn {
+    background: #fff;
+    color: #1b9ce3;
+    box-shadow: #0000001a 0px 3px 5px
+}
+
+.card .content .btn .fas {
+    font-size: 10px;
+    padding-left: 5px
+}
+
+.card .content .foot .admin {
+    color: #1b9ce3;
+    font-size: 12px
+}
+
+.card:hover .content .foot .admin {
+    color: #fff
+}
+
+.card .content .foot .icon {
+    font-size: 12px
+}
+</style>
+@* cardkids *@
+
+
+
+
